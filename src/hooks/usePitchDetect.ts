@@ -1,0 +1,75 @@
+import { useEffect, useRef, useState } from 'react';
+import { PitchDetector } from 'pitchy';
+
+export interface PitchSample {
+  midi: number;
+  frequency: number;
+  clarity: number;
+}
+
+// Continuous microphone pitch detection via pitchy's McLeod pitch method.
+// Emits a sample only when clarity clears the threshold AND the detected
+// MIDI note is stable across two consecutive reads, to avoid flapping.
+export function usePitchDetect(onPitch: (p: PitchSample) => void, clarityThreshold = 0.92) {
+  const [listening, setListening] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const onPitchRef = useRef(onPitch);
+  onPitchRef.current = onPitch;
+
+  const ctxRef = useRef<AudioContext | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const start = async () => {
+    if (listening) return;
+    try {
+      const ctx = new AudioContext();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const src = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      src.connect(analyser);
+
+      const detector = PitchDetector.forFloat32Array(analyser.fftSize);
+      const buf = new Float32Array(detector.inputLength);
+      let lastMidi = -1;
+
+      const tick = () => {
+        analyser.getFloatTimeDomainData(buf);
+        const [freq, clarity] = detector.findPitch(buf, ctx.sampleRate);
+        if (clarity > clarityThreshold && freq > 40 && freq < 4500) {
+          const midi = Math.round(69 + 12 * Math.log2(freq / 440));
+          if (midi === lastMidi) {
+            onPitchRef.current({ midi, frequency: freq, clarity });
+          }
+          lastMidi = midi;
+        } else {
+          lastMidi = -1;
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+
+      ctxRef.current = ctx;
+      streamRef.current = stream;
+      setListening(true);
+      setError(null);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const stop = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+    ctxRef.current?.close();
+    ctxRef.current = null;
+    setListening(false);
+  };
+
+  useEffect(() => () => stop(), []);
+
+  return { listening, error, start, stop };
+}
