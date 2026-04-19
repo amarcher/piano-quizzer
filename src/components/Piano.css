@@ -42,6 +42,15 @@
   background: linear-gradient(#b9f3c8, #6fd88e);
   color: #0b3d18;
 }
+.piano__key--white.is-warn {
+  background: linear-gradient(#ffe3e3, #ffc0c0);
+  color: #8b0000;
+}
+.piano__key--white.is-warn.is-active {
+  background: linear-gradient(#ff7a7a, #d03535);
+  color: white;
+  animation: key-flash-bad 0.45s;
+}
 
 .piano__key--black {
   position: absolute;
@@ -64,6 +73,18 @@
 }
 .piano__key--black.is-target {
   background: linear-gradient(#1e5a31, #2b8a4b);
+}
+.piano__key--black.is-warn {
+  background: linear-gradient(#6b2020, #2c0606);
+}
+.piano__key--black.is-warn.is-active {
+  background: linear-gradient(#ff6a6a, #b02020);
+  animation: key-flash-bad 0.45s;
+}
+
+@keyframes key-flash-bad {
+  0%   { box-shadow: 0 0 0 4px rgba(255, 60, 60, 0.8); }
+  100% { box-shadow: 0 0 0 0 transparent; }
 }
 
 .piano__label {

@@ -32,6 +32,77 @@
   line-height: 1.4;
   margin: 0 0 12px;
 }
+
+/* Mirror mode: the big "what you're playing" readout. */
+.adv__mirror-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: #11121a;
+  border: 1px solid #25263a;
+  border-radius: 18px;
+  padding: 20px 24px;
+}
+
+.adv__mirror-letter {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: 'Georgia', serif;
+  font-weight: 700;
+  font-size: clamp(72px, 14vw, 128px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  padding: 4px 24px;
+  border-radius: 12px;
+  transition: color 80ms;
+}
+.adv__mirror-letter.is-ok { color: #e8e6ff; }
+.adv__mirror-letter.is-bad {
+  color: #ff6a6a;
+  animation: mirror-flash 0.55s;
+}
+.adv__mirror-letter[data-empty] {
+  color: #46465a;
+  font-size: clamp(28px, 5vw, 44px);
+  font-style: italic;
+  font-weight: 400;
+  font-family: inherit;
+}
+.adv__mirror-letter-oct {
+  font-size: 0.35em;
+  color: #7b7a94;
+  font-family: ui-monospace, monospace;
+  font-weight: 500;
+}
+.adv__mirror-letter-empty { /* handled above */ }
+
+@keyframes mirror-flash {
+  0%   { background: rgba(255, 60, 60, 0.4); }
+  100% { background: transparent; }
+}
+
+.adv__mirror-warning {
+  font-size: 13px;
+  color: #ff9b9b;
+  background: rgba(255, 60, 60, 0.1);
+  border: 1px solid rgba(255, 60, 60, 0.3);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.adv__mirror-legend {
+  text-align: center;
+  font-size: 12px;
+  color: #9b9ab8;
+  margin: 8px 0 0;
+}
+.adv__mirror-legend em {
+  color: #ff9b9b;
+  font-style: normal;
+  font-weight: 600;
+}
 .adv-shell__tabs button {
   border: 1px solid #3a3a4a;
   background: #1e1e28;

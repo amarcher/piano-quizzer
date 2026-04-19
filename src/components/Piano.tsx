@@ -7,6 +7,7 @@ interface Props {
   toMidi?: number;
   activeMidi?: Set<number>;
   targetMidi?: Set<number>;
+  warnMidi?: Set<number>; // keys to highlight as "wrong / not in key"
   fingerings?: Map<number, number>;
   showLetters?: boolean;
   onKeyDown?: (midi: number) => void;
@@ -21,6 +22,7 @@ export function Piano({
   toMidi = 84, // C6
   activeMidi,
   targetMidi,
+  warnMidi,
   fingerings,
   showLetters = true,
   onKeyDown,
@@ -65,6 +67,7 @@ export function Piano({
             className={`piano__key piano__key--white
               ${activeMidi?.has(m) ? 'is-active' : ''}
               ${targetMidi?.has(m) ? 'is-target' : ''}
+              ${warnMidi?.has(m) ? 'is-warn' : ''}
               ${isC ? 'is-c' : ''}`}
             onPointerDown={handleDown(m)}
             onPointerUp={handleUp(m)}
@@ -96,7 +99,8 @@ export function Piano({
             type="button"
             className={`piano__key piano__key--black
               ${activeMidi?.has(m) ? 'is-active' : ''}
-              ${targetMidi?.has(m) ? 'is-target' : ''}`}
+              ${targetMidi?.has(m) ? 'is-target' : ''}
+              ${warnMidi?.has(m) ? 'is-warn' : ''}`}
             style={{ left: `calc(${(idx + 1)} * var(--white-w) - var(--black-w) / 2)` }}
             onPointerDown={handleDown(m)}
             onPointerUp={handleUp(m)}
