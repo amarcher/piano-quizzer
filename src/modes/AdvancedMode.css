@@ -8,6 +8,29 @@
   gap: 6px;
   margin-bottom: 8px;
   justify-content: center;
+  flex-wrap: wrap;
+}
+
+.adv__inv-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #c7c5e0;
+}
+.adv__inv-list li {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #181925;
+  margin-bottom: 4px;
+}
+.adv__inv-list li strong { color: #dedbff; }
+.adv__inv-list li em { color: #7c5cff; font-style: normal; font-weight: 600; }
+.adv__inv-tip {
+  font-size: 12px;
+  color: #9b9ab8;
+  line-height: 1.4;
+  margin: 0 0 12px;
 }
 .adv-shell__tabs button {
   border: 1px solid #3a3a4a;
