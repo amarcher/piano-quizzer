@@ -1,10 +1,79 @@
+.adv-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+.adv-shell__tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  justify-content: center;
+}
+.adv-shell__tabs button {
+  border: 1px solid #3a3a4a;
+  background: #1e1e28;
+  color: #dedbff;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.adv-shell__tabs button.is-on {
+  background: linear-gradient(135deg, #7c5cff, #4e8cff);
+  border-color: transparent;
+  color: white;
+}
+
 .adv {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.adv__prompt {
+  width: 100%;
+  text-align: center;
+  font-size: 18px;
+  color: #1a1820;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.adv__roman {
+  font-family: 'Georgia', serif;
+  font-size: 32px;
+  color: #3b2599;
+}
+.adv__prompt-sub {
+  font-size: 13px;
+  color: #888;
+}
+
+.adv__progression-desc {
+  background: #11121a;
+  border: 1px solid #25263a;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0;
+  color: #c7c5e0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.adv__steps--romans li {
+  grid-template-columns: 40px 1fr auto;
+}
+.adv__steps--romans .adv__deg {
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+  color: #dedbff;
+  font-weight: 700;
+  font-variant-numeric: normal;
 }
 
 .adv__toolbar {
