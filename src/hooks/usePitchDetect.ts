@@ -32,19 +32,29 @@ export function usePitchDetect(onPitch: (p: PitchSample) => void, clarityThresho
 
       const detector = PitchDetector.forFloat32Array(analyser.fftSize);
       const buf = new Float32Array(detector.inputLength);
-      let lastMidi = -1;
+      let lastStableMidi = -1; // candidate seen on the previous frame
+      let lastFiredMidi = -1;  // the note we most recently reported
+      let silenceFrames = 0;
 
       const tick = () => {
         analyser.getFloatTimeDomainData(buf);
         const [freq, clarity] = detector.findPitch(buf, ctx.sampleRate);
         if (clarity > clarityThreshold && freq > 40 && freq < 4500) {
           const midi = Math.round(69 + 12 * Math.log2(freq / 440));
-          if (midi === lastMidi) {
+          // Fire once when a NEW stable pitch starts — two consecutive frames
+          // agreeing, and different from whatever we last reported. This
+          // converts a sustained note into a single event.
+          if (midi === lastStableMidi && midi !== lastFiredMidi) {
             onPitchRef.current({ midi, frequency: freq, clarity });
+            lastFiredMidi = midi;
           }
-          lastMidi = midi;
+          lastStableMidi = midi;
+          silenceFrames = 0;
         } else {
-          lastMidi = -1;
+          lastStableMidi = -1;
+          silenceFrames += 1;
+          // After ~120ms of quiet, reset so repeating the same note fires again.
+          if (silenceFrames > 7) lastFiredMidi = -1;
         }
         rafRef.current = requestAnimationFrame(tick);
       };

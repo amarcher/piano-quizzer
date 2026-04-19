@@ -18,6 +18,8 @@ export function AdvancedMode() {
   const [mode, setMode] = useState<'walk' | 'view'>('view');
   const [pressed, setPressed] = useState<Set<number>>(new Set());
 
+  const [heard, setHeard] = useState<string | null>(null);
+
   const clef: Clef = hand === 'right' ? 'treble' : 'bass';
   const startOctave = hand === 'right' ? 4 : 2;
   const scale = useMemo(() => buildAscendingScale(key, startOctave), [key, startOctave]);
@@ -48,14 +50,21 @@ export function AdvancedMode() {
   }, [mode, target, advance]);
   const midi = useMidiInput(handleMidi);
 
-  // Pitch-detect the mic. In walk mode, accept the correct pitch class
-  // in any octave and advance without re-playing the synth (would feed back).
+  // Pitch-detect the mic. Any octave of the target pitch advances. We don't
+  // gate on mode — starting listening implies the user wants to advance as
+  // they play. We also display the last-heard note so the mic activity is
+  // visible even when the pitch doesn't match.
   const pitch = usePitchDetect(sample => {
-    if (mode !== 'walk') return;
+    setHeard(midiToName(sample.midi));
     const targetPc = ((target % 12) + 12) % 12;
     const heardPc = ((sample.midi % 12) + 12) % 12;
     if (heardPc === targetPc) advance();
-  });
+  }, 0.88);
+
+  const startListening = async () => {
+    setMode('walk');
+    await pitch.start();
+  };
 
   useEffect(() => { setStepIdx(0); }, [key, hand]);
 
@@ -99,14 +108,18 @@ export function AdvancedMode() {
         )}
         {midi.enabled && <span className="adv__chip">🎹 {midi.deviceName}</span>}
         {!pitch.listening ? (
-          <button type="button" className="adv__button adv__button--ghost" onClick={() => void pitch.start()}>
+          <button type="button" className="adv__button adv__button--ghost" onClick={() => void startListening()}>
             🎤 Listen
           </button>
         ) : (
-          <button type="button" className="adv__button" onClick={() => pitch.stop()}>
-            🎤 Listening (stop)
+          <button type="button" className="adv__button" onClick={() => { pitch.stop(); setHeard(null); }}>
+            🎤 Stop listening
           </button>
         )}
+        {pitch.listening && (
+          <span className="adv__chip">heard: {heard ?? '—'}</span>
+        )}
+        {pitch.error && <span className="adv__chip" style={{ background: '#4a1e1e', color: '#ffb4b4', borderColor: '#8b3838' }}>{pitch.error}</span>}
       </div>
 
       <div className="adv__grid">
