@@ -15,6 +15,7 @@ Both modes accept input via mouse/touch on the on-screen piano **or** a connecte
 - `npm run build` — `tsc -b && vite build`
 - `npm run preview` — preview production build
 - `npx tsc --noEmit -p tsconfig.app.json` — type check only
+- `node scripts/generate-icons.mjs` — regenerate PWA PNG icons from the source SVGs
 
 ## Architecture
 
@@ -38,12 +39,22 @@ Both modes accept input via mouse/touch on the on-screen piano **or** a connecte
 - `src/components/SheetMusic.tsx` — the accidental-suppression logic is the easy place to introduce display bugs; see the comment around `keyAccidentals`.
 - `src/modes/MiloMode.tsx` / `AdvancedMode.tsx` — screen-level state machines for the two modes.
 
+## PWA / Installable app
+
+- **Manifest**: `public/manifest.webmanifest` — `display: standalone`, dark theme colors matching the app. Referenced from `index.html` via `<link rel="manifest">`.
+- **Service worker**: `public/sw.js` — stale-while-revalidate. Cache name is versioned (bump `VERSION` when you want to force all installed clients to re-fetch). Navigation requests always resolve to the cached `/index.html` shell so deep links work offline and don't depend on the Vercel SPA rewrite. Registered from `src/main.tsx` only in production (so it doesn't fight Vite HMR in dev).
+- **iOS specifics**: `index.html` includes `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent`, `apple-mobile-web-app-title`, and an `apple-touch-icon` link. Safe-area insets are padded in `src/index.css` so content clears the notch and home indicator when launched from the home screen.
+- **Icons**: source SVGs live in `public/` (`icon.svg` and `icon-maskable.svg` — the maskable one has a full-bleed background and ~60% safe-zone art). PNGs in `public/icons/` are rasterized from them via `scripts/generate-icons.mjs` (uses `sharp`). Regenerate after editing the SVGs; the PNGs are committed so CI builds don't need `sharp`.
+- **Version bumping**: after shipping a change you want to force-push to installed clients, bump `VERSION` in `public/sw.js`. Otherwise the old service worker keeps serving the old shell until the client naturally revalidates.
+
 ## Gotchas
 
 - **VexFlow 5** uses `numBeats` / `beatValue` (not `num_beats`). Renderer backend is `Renderer.Backends.SVG`.
 - **Autoplay**: AudioContext cannot start without a user gesture. Tone.js logs warnings on mount but it's harmless — playback works the first time the user clicks.
 - **Web MIDI**: unsupported in Safari. The hook exposes `supported` so the UI can hide the "Connect MIDI" button accordingly.
 - **Scale octave direction**: `buildAscendingScale` bumps the octave whenever the next spelled note's MIDI would not exceed the previous one (handles keys like B major where the 7th degree A# is below B).
+- **iOS home-screen icon caching**: iOS aggressively caches the apple-touch-icon. If an update doesn't appear, remove the installed app and re-add it.
+- **`vite-plugin-pwa` not used** because it doesn't yet support Vite 8 (as of this writing). The manual setup here is small enough that adding the plugin later is easy.
 
 ## Not yet built (future work)
 

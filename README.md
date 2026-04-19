@@ -39,6 +39,27 @@ npm run build   # tsc -b && vite build
 npm run preview # serve the built output
 ```
 
+## Install on iPad (or any device)
+
+The app is a PWA — it can be installed to your home screen and launches full-screen without browser chrome.
+
+**iPad / iPhone (Safari):**
+1. Open https://piano-quizzer.vercel.app
+2. Share → Add to Home Screen
+3. Tap the icon to launch
+
+**Desktop / Android (Chrome, Edge):** an Install button appears in the address bar.
+
+Once installed, a service worker caches the app shell so it opens instantly on subsequent launches and survives brief offline periods.
+
+## Icons
+
+App icons are rasterized from `public/icon.svg` (and a full-bleed `public/icon-maskable.svg` for Android adaptive icons). Regenerate PNGs after editing the SVGs:
+
+```bash
+node scripts/generate-icons.mjs
+```
+
 ## Stack
 
 - [Vite](https://vite.dev/) + React 19 + TypeScript
