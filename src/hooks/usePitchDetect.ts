@@ -8,9 +8,15 @@ export interface PitchSample {
 }
 
 // Continuous microphone pitch detection via pitchy's McLeod pitch method.
-// Emits a sample only when clarity clears the threshold AND the detected
-// MIDI note is stable across two consecutive reads, to avoid flapping.
-export function usePitchDetect(onPitch: (p: PitchSample) => void, clarityThreshold = 0.92) {
+// Emits a sample only when (1) RMS amplitude clears minRms — stops ambient
+// room noise from triggering, (2) clarity clears the threshold, and (3) the
+// detected MIDI note is stable across two consecutive frames and differs
+// from the previously reported note, so a sustained note fires once.
+export function usePitchDetect(
+  onPitch: (p: PitchSample) => void,
+  clarityThreshold = 0.92,
+  minRms = 0.015,
+) {
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const onPitchRef = useRef(onPitch);
@@ -38,8 +44,13 @@ export function usePitchDetect(onPitch: (p: PitchSample) => void, clarityThresho
 
       const tick = () => {
         analyser.getFloatTimeDomainData(buf);
+        // RMS amplitude — cheap way to reject silence and background noise
+        // before running (or trusting) the pitch detector.
+        let sumSq = 0;
+        for (let i = 0; i < buf.length; i++) sumSq += buf[i] * buf[i];
+        const rms = Math.sqrt(sumSq / buf.length);
         const [freq, clarity] = detector.findPitch(buf, ctx.sampleRate);
-        if (clarity > clarityThreshold && freq > 40 && freq < 4500) {
+        if (rms > minRms && clarity > clarityThreshold && freq > 40 && freq < 4500) {
           const midi = Math.round(69 + 12 * Math.log2(freq / 440));
           // Fire once when a NEW stable pitch starts — two consecutive frames
           // agreeing, and different from whatever we last reported. This

@@ -68,6 +68,8 @@ export function MirrorPlayground() {
   // Mic detections don't have a note-off event. Simulate a short "hold"
   // so the detected pitch stays visible on the staff for a moment, then
   // fades. Pressing the same pitch again before the timeout resets it.
+  // Mirror mode has no "target" to filter against, so it's extra sensitive
+  // to phantom detections. Tighten both clarity and amplitude gates here.
   const pitch = usePitchDetect(sample => {
     const m = sample.midi;
     const prev = micTimeoutsRef.current.get(m);
@@ -78,7 +80,7 @@ export function MirrorPlayground() {
       micTimeoutsRef.current.delete(m);
     }, 700);
     micTimeoutsRef.current.set(m, id);
-  }, 0.88);
+  }, 0.95, 0.035);
 
   // Clear all mic timeouts on unmount.
   useEffect(() => () => {
@@ -148,11 +150,6 @@ export function MirrorPlayground() {
             <span className="adv__mirror-letter-empty">play a note</span>
           )}
         </div>
-        {lastBad && sig && (
-          <div className="adv__mirror-warning">
-            not in {key} major — try {sig.scaleNotes.join(' ')}
-          </div>
-        )}
       </div>
 
       <div className="adv__staff">
